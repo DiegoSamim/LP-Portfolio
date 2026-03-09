@@ -17,13 +17,14 @@ const ACCENT = "rgba(208, 208, 214, 0.72)";
 
 export default function StackBadges() {
   const [isOpen, setIsOpen] = useState(false);
-  const [hovered, setHovered] = useState(null);
+  const [hovered, setHovered] = useState<string | null>(null);
   const [selectedBadge, setSelectedBadge] = useState<(typeof allBadges)[number] | null>(null);
   const [page, setPage] = useState(0);
 
   const totalPages = Math.max(1, Math.ceil(allBadges.length / SKILLS_PER_PAGE));
   const startIndex = page * SKILLS_PER_PAGE;
   const visibleBadges = allBadges.slice(startIndex, startIndex + SKILLS_PER_PAGE);
+  const hoveredBadge = hovered ? allBadges.find((badge) => badge.name === hovered) ?? null : null;
 
   useEffect(() => {
     if (!isOpen) {
@@ -317,31 +318,6 @@ export default function StackBadges() {
                       />
                     </div>
 
-                    {/* tooltip */}
-                    <AnimatePresence>
-                      {hovered === badge.name && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 6, scale: 0.93 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 6, scale: 0.93 }}
-                          transition={{ duration: 0.14 }}
-                          style={{
-                            position: "absolute", top: "calc(100% + 10px)", left: "50%",
-                            transform: "translateX(-50%)", zIndex: 40,
-                            background: "rgba(14,14,14,0.96)",
-                            border: "1px solid rgba(255,255,255,0.18)",
-                            borderRadius: 8, padding: "5px 11px",
-                            textAlign: "center", whiteSpace: "nowrap",
-                            backdropFilter: "blur(10px)",
-                            boxShadow: "0 8px 24px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03)",
-                            pointerEvents: "none",
-                          }}
-                        >
-                          <p style={{ color: "#ededed", fontSize: 11, fontWeight: 600, margin: 0, letterSpacing: "0.02em" }}>{badge.name}</p>
-                          <p style={{ color: "rgba(198,198,202,0.72)", fontSize: 10, margin: "2px 0 0" }}>{badge.description}</p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
                   </motion.div>
                 ))}
               </div>
@@ -602,6 +578,51 @@ export default function StackBadges() {
                 background: "radial-gradient(ellipse, rgba(0,0,0,0.4), transparent)",
                 boxShadow: "inset 0 2px 8px rgba(0,0,0,0.5)",
               }} />
+
+              <AnimatePresence>
+                {isOpen && hoveredBadge && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.97 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    style={{
+                      position: "absolute",
+                      left: 18,
+                      right: 18,
+                      bottom: 16,
+                      width: "auto",
+                      maxWidth: 340,
+                      margin: "0 auto",
+                      background: "linear-gradient(180deg, rgba(26,26,26,0.9), rgba(12,12,12,0.94))",
+                      border: "1px solid rgba(255,255,255,0.14)",
+                      borderRadius: 10,
+                      padding: "10px 12px",
+                      boxShadow: "0 10px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)",
+                      zIndex: 1,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    <p style={{
+                      margin: 0,
+                      color: "#ededf2",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      letterSpacing: "0.02em",
+                    }}>
+                      {hoveredBadge.name}
+                    </p>
+                    <p style={{
+                      margin: "5px 0 0",
+                      color: "rgba(212,212,218,0.84)",
+                      fontSize: 12,
+                      lineHeight: 1.4,
+                    }}>
+                      {hoveredBadge.description}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <AnimatePresence>
                 {isOpen && (
