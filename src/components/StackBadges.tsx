@@ -416,7 +416,18 @@ export default function StackBadges() {
           ══════════════════════════════════════════════════ */}
           <motion.div
             animate={isOpen ? { rotateX: -122, y: -4 } : { rotateX: 0, y: 0 }}
-            transition={{ type: "spring", stiffness: 46, damping: 11, mass: 1.6 }}
+            transition={{
+              rotateX: {
+                type: "tween",
+                duration: isOpen ? 1.2 : 0.9,
+                ease: isOpen ? [0.19, 1, 0.22, 1] : [0.32, 0.72, 0, 1],
+              },
+              y: {
+                type: "tween",
+                duration: isOpen ? 1.2 : 0.9,
+                ease: isOpen ? [0.19, 1, 0.22, 1] : [0.32, 0.72, 0, 1],
+              },
+            }}
             style={{
               position: "absolute",
               inset: 0,
@@ -458,6 +469,7 @@ export default function StackBadges() {
                   0 2px 8px rgba(0,0,0,0.5)
                 `,
                 backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
                 cursor: "pointer",
               }}
             >
@@ -573,6 +585,7 @@ export default function StackBadges() {
                 `,
                 transform: "rotateX(180deg)",
                 backfaceVisibility: "hidden",
+                WebkitBackfaceVisibility: "hidden",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 cursor: "pointer",
               }}
