@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 0 0% 7%;
+    --foreground: 220 8% 92%;
+
+    --card: 0 0% 10%;
+    --card-foreground: 220 8% 92%;
+
+    --popover: 0 0% 10%;
+    --popover-foreground: 220 8% 92%;
+
+    --primary: 270 28% 74%;
+    --primary-foreground: 0 0% 8%;
+
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 220 8% 86%;
+
+    --muted: 0 0% 12%;
+    --muted-foreground: 220 6% 63%;
+
+    --accent: 0 0% 16%;
+    --accent-foreground: 220 8% 92%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 18%;
+    --ring: 270 28% 74%;
+
+    --radius: 0.75rem;
+
+    --glow-primary: 270 35% 66%;
+    --glow-accent: 260 26% 58%;
+    --glow-gold: 42 26% 60%;
+
+    --sidebar-background: 0 0% 9%;
+    --sidebar-foreground: 220 8% 92%;
+    --sidebar-primary: 270 28% 74%;
+    --sidebar-primary-foreground: 0 0% 8%;
+    --sidebar-accent: 0 0% 14%;
+    --sidebar-accent-foreground: 220 8% 92%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 270 28% 74%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply text-foreground font-body antialiased;
+    background:
+      radial-gradient(ellipse 56% 45% at 50% 68%, rgba(0, 0, 0, 0.32) 0%, transparent 70%),
+      linear-gradient(165deg, #202127 0%, #1a1c22 50%, #14161d 100%);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer utilities {
+  .glow-primary {
+    box-shadow: 0 0 14px hsl(var(--glow-primary) / 0.18), 0 0 36px hsl(var(--glow-primary) / 0.07);
+  }
+  .glow-accent {
+    box-shadow: 0 0 14px hsl(var(--glow-accent) / 0.18), 0 0 36px hsl(var(--glow-accent) / 0.07);
+  }
+  .glow-gold {
+    box-shadow: 0 0 14px hsl(var(--glow-gold) / 0.24), 0 0 36px hsl(var(--glow-gold) / 0.1);
+  }
+  .text-glow-primary {
+    text-shadow: 0 0 10px hsl(var(--glow-primary) / 0.32);
+  }
+  .text-glow-accent {
+    text-shadow: 0 0 10px hsl(var(--glow-accent) / 0.32);
+  }
+  .glass {
+    @apply bg-card/75 backdrop-blur-xl border border-border/70;
+  }
+}
