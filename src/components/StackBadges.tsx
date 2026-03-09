@@ -1,83 +1,13 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { skillsContent } from "@/lib/content";
+import { playSound } from "@/lib/sfx";
 
-const allBadges = [
-  {
-    name: "Python",
-    emoji: "🐍",
-    description: "Backend / automation",
-    topics: ["APIs com FastAPI/Django", "Scripts e automações", "Processamento de dados"],
-  },
-  {
-    name: "JavaScript",
-    emoji: "⚡",
-    description: "Dynamic web applications",
-    topics: ["Lógica de interface", "Integração com APIs", "Apps web interativas"],
-  },
-  {
-    name: "React",
-    emoji: "⚛️",
-    description: "Component-based UIs",
-    topics: ["Arquitetura em componentes", "Estado e hooks", "UI reutilizável"],
-  },
-  {
-    name: "Node.js",
-    emoji: "🟢",
-    description: "Server-side runtime",
-    topics: ["APIs REST", "Autenticação e rotas", "Serviços em tempo real"],
-  },
-  {
-    name: "Docker",
-    emoji: "🐳",
-    description: "Containerization",
-    topics: ["Ambientes padronizados", "Build e deploy", "Orquestração básica"],
-  },
-  {
-    name: "Git",
-    emoji: "🔀",
-    description: "Version control",
-    topics: ["Fluxo com branches", "Code review", "Histórico e versionamento"],
-  },
-  {
-    name: "PostgreSQL",
-    emoji: "🐘",
-    description: "Relational databases",
-    topics: ["Modelagem relacional", "Queries otimizadas", "Índices e performance"],
-  },
-  {
-    name: "TypeScript",
-    emoji: "🔷",
-    description: "Type-safe development",
-    topics: ["Tipagem forte", "Contratos de dados", "Refatorações seguras"],
-  },
-  {
-    name: "GraphQL",
-    emoji: "💜",
-    description: "API query language",
-    topics: ["Schemas e resolvers", "Queries eficientes", "Integração com front-end"],
-  },
-  {
-    name: "Redis",
-    emoji: "🔴",
-    description: "In-memory data store",
-    topics: ["Cache de baixa latência", "Sessões e filas", "Pub/Sub"],
-  },
-  {
-    name: "AWS",
-    emoji: "☁️",
-    description: "Cloud infrastructure",
-    topics: ["Deploy em nuvem", "Storage e computação", "Escalabilidade"],
-  },
-  {
-    name: "Figma",
-    emoji: "🎨",
-    description: "UI/UX design",
-    topics: ["Protótipos navegáveis", "Design systems", "Handoff para desenvolvimento"],
-  },
-];
+const allBadges = skillsContent;
 
 const W = 420;
 const H = 340;
+const SKILLS_PER_PAGE = 12;
 
 /* ─── shared depth tokens ─── */
 const CASE_BG = "linear-gradient(180deg, #181818 0%, #111111 58%, #0b0b0b 100%)";
@@ -89,6 +19,11 @@ export default function StackBadges() {
   const [isOpen, setIsOpen] = useState(false);
   const [hovered, setHovered] = useState(null);
   const [selectedBadge, setSelectedBadge] = useState<(typeof allBadges)[number] | null>(null);
+  const [page, setPage] = useState(0);
+
+  const totalPages = Math.max(1, Math.ceil(allBadges.length / SKILLS_PER_PAGE));
+  const startIndex = page * SKILLS_PER_PAGE;
+  const visibleBadges = allBadges.slice(startIndex, startIndex + SKILLS_PER_PAGE);
 
   useEffect(() => {
     if (!isOpen) {
@@ -97,6 +32,17 @@ export default function StackBadges() {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (page > totalPages - 1) {
+      setPage(Math.max(0, totalPages - 1));
+    }
+  }, [page, totalPages]);
+
+  useEffect(() => {
+    setSelectedBadge(null);
+    setHovered(null);
+  }, [page]);
+
   return (
     <motion.section
       animate={{ minHeight: isOpen ? "150vh" : "120vh" }}
@@ -104,11 +50,6 @@ export default function StackBadges() {
       style={{
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "flex-start",
-        /* keep same matte backdrop used across the page */
-        background: `
-        radial-gradient(ellipse 56% 45% at 50% 68%, rgba(0,0,0,0.32) 0%, transparent 70%),
-        linear-gradient(165deg, #202127 0%, #1a1c22 50%, #14161d 100%)
-      `,
         padding: "24px 20px 60px",
         fontFamily: "'DM Mono', 'Fira Code', monospace",
         overflow: "hidden",
@@ -121,14 +62,14 @@ export default function StackBadges() {
           fontSize: 11, letterSpacing: "0.32em", marginBottom: 10,
           textTransform: "uppercase",
         }}>
-          // skills
+          // habilidades
         </p>
         <h2 style={{
           color: "#ececf0", fontSize: 30, fontWeight: 600, margin: 0,
           letterSpacing: "-0.02em",
           textShadow: "0 0 24px rgba(0,0,0,0.5)",
         }}>
-          Badge Case
+          Habilidades
         </h2>
         <motion.p
           key={isOpen ? "open" : "closed"}
@@ -136,7 +77,7 @@ export default function StackBadges() {
           animate={{ opacity: 1, y: 0 }}
           style={{ color: "rgba(215,215,220,0.44)", fontSize: 13, marginTop: 10 }}
         >
-          {isOpen ? "hover to inspect · click lid to close" : "click to open"}
+          Principais competências e tecnologias
         </motion.p>
       </div>
 
@@ -185,7 +126,7 @@ export default function StackBadges() {
             width: W, height: H,
             background: CASE_BG,
             border: "1.5px solid rgba(255,255,255,0.08)",
-            borderRadius: 10, 
+            borderRadius: 10,
             /* layered box-shadow for real depth */
             boxShadow: `
               0 0 0 1px rgba(255,255,255,0.03) inset,
@@ -243,7 +184,7 @@ export default function StackBadges() {
                 display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14,
                 position: "relative",
               }}>
-                {allBadges.map((badge, i) => (
+                {visibleBadges.map((badge, i) => (
                   <motion.div
                     key={badge.name}
                     initial={false}
@@ -261,9 +202,19 @@ export default function StackBadges() {
                         ease: "linear",
                       }
                     }
-                    onMouseEnter={() => isOpen && setHovered(badge.name)}
+                    onMouseEnter={() => {
+                      if (isOpen) {
+                        playSound("badgeHover", { volume: 0.2, debounceMs: 140 });
+                        setHovered(badge.name);
+                      }
+                    }}
                     onMouseLeave={() => setHovered(null)}
-                    onClick={() => isOpen && setSelectedBadge(badge)}
+                    onClick={() => {
+                      if (isOpen) {
+                        playSound("openBadgeInterface", { volume: 0.33, debounceMs: 120 });
+                        setSelectedBadge(badge);
+                      }
+                    }}
                     style={{
                       display: "flex", alignItems: "center", justifyContent: "center",
                       position: "relative",
@@ -342,7 +293,15 @@ export default function StackBadges() {
                           display: "flex", alignItems: "center", justifyContent: "center",
                           fontSize: 20, userSelect: "none",
                         }}>
-                          {badge.emoji}
+                          {badge.iconUrl ? (
+                            <img
+                              src={badge.iconUrl}
+                              alt={badge.name}
+                              style={{ width: 24, height: 24, objectFit: "contain" }}
+                            />
+                          ) : (
+                            badge.emoji
+                          )}
                         </div>
                       </motion.div>
 
@@ -387,6 +346,66 @@ export default function StackBadges() {
                 ))}
               </div>
 
+              {totalPages > 1 && (
+                <div style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 10,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 10,
+                  zIndex: 5,
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playSound("clickSwitch", { volume: 0.28, debounceMs: 70 });
+                      setPage((prev) => (prev - 1 + totalPages) % totalPages);
+                    }}
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: 999,
+                      border: "1px solid rgba(255,255,255,0.16)",
+                      background: "rgba(18,18,18,0.7)",
+                      color: "rgba(235,235,240,0.9)",
+                      cursor: "pointer",
+                      lineHeight: 1,
+                    }}
+                    aria-label="Página anterior"
+                  >
+                    ‹
+                  </button>
+
+                  <span style={{ color: "rgba(210,210,214,0.72)", fontSize: 10, letterSpacing: "0.12em" }}>
+                    {page + 1}/{totalPages}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playSound("clickSwitch", { volume: 0.28, debounceMs: 70 });
+                      setPage((prev) => (prev + 1) % totalPages);
+                    }}
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: 999,
+                      border: "1px solid rgba(255,255,255,0.16)",
+                      background: "rgba(18,18,18,0.7)",
+                      color: "rgba(235,235,240,0.9)",
+                      cursor: "pointer",
+                      lineHeight: 1,
+                    }}
+                    aria-label="Próxima página"
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
+
             </div>
           </div>
 
@@ -422,7 +441,11 @@ export default function StackBadges() {
 
             {/* ─── FACE EXTERNA (front, shown when closed) ─── */}
             <div
-              onClick={() => setIsOpen((prev) => !prev)}
+              onClick={() => {
+                const nextOpen = !isOpen;
+                playSound(nextOpen ? "openCase" : "closeCase", { volume: 0.32, debounceMs: 120 });
+                setIsOpen(nextOpen);
+              }}
               style={{
                 position: "absolute", inset: 0,
                 borderRadius: 10, overflow: "hidden",
@@ -524,7 +547,7 @@ export default function StackBadges() {
                     fontFamily: "inherit", letterSpacing: "0.3em", textTransform: "uppercase",
                   }}
                 >
-                  tap to open
+                  Clique para abrir
                 </motion.span>
               </div>
             </div>
@@ -553,7 +576,10 @@ export default function StackBadges() {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 cursor: "pointer",
               }}
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                playSound("closeCase", { volume: 0.32, debounceMs: 120 });
+                setIsOpen(false);
+              }}
             >
               {/* inner lid center recess */}
               <div style={{
@@ -573,6 +599,7 @@ export default function StackBadges() {
                     transition={{ delay: 0.44, type: "spring", stiffness: 280, damping: 22 }}
                     onClick={(e) => {
                       e.stopPropagation();
+                      playSound("closeCase", { volume: 0.32, debounceMs: 120 });
                       setIsOpen(false);
                       setSelectedBadge(null);
                     }}
@@ -660,9 +687,16 @@ export default function StackBadges() {
                     background: "linear-gradient(145deg, #2c2c2c, #161616)",
                     border: "1px solid rgba(255,255,255,0.14)",
                     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 18px rgba(0,0,0,0.45)",
-                    fontSize: 20,
                   }}>
-                    {selectedBadge.emoji}
+                    {selectedBadge.iconUrl ? (
+                      <img
+                        src={selectedBadge.iconUrl}
+                        alt={selectedBadge.name}
+                        style={{ width: 22, height: 22, objectFit: "contain" }}
+                      />
+                    ) : (
+                      selectedBadge.emoji
+                    )}
                   </div>
                   <div>
                     <p style={{ margin: 0, color: "#efefef", fontSize: 16, fontWeight: 600 }}>{selectedBadge.name}</p>

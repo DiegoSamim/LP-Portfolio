@@ -1,63 +1,59 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ExternalLink, Github, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { projectsContent } from "@/lib/content";
+import { playSound } from "@/lib/sfx";
 
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  techStack: string[];
-  mainStack: string;
-  objective: string;
-  github: string;
-  demo: string;
-  emoji: string;
-  oneLiner: string;
-}
+type Project = (typeof projectsContent)[number];
+const projects = projectsContent;
+const projectAssetImages = import.meta.glob("/src/assets/*", { eager: true, import: "default" }) as Record<string, string>;
+const DEFAULT_PROJECT_ICON = "🏆";
 
-const projects: Project[] = [
-  {
-    id: 1, name: "CloudSync", emoji: "☁️", mainStack: "React + AWS",
-    oneLiner: "Real-time cloud sync for distributed teams",
-    description: "A real-time cloud synchronization platform enabling seamless file sharing across devices.",
-    techStack: ["React", "Node.js", "AWS S3", "WebSocket"],
-    objective: "Build a reliable, low-latency sync engine for distributed teams.",
-    github: "https://github.com", demo: "https://example.com",
-  },
-  {
-    id: 2, name: "DevMetrics", emoji: "📊", mainStack: "Next.js + Python",
-    oneLiner: "Developer productivity analytics dashboard",
-    description: "Developer productivity dashboard with GitHub integration and sprint analytics.",
-    techStack: ["Next.js", "Python", "PostgreSQL", "D3.js"],
-    objective: "Help teams visualize and improve their development workflow.",
-    github: "https://github.com", demo: "https://example.com",
-  },
-  {
-    id: 3, name: "NeuralChat", emoji: "🧠", mainStack: "Python + FastAPI",
-    oneLiner: "AI chatbot framework with custom training",
-    description: "AI-powered chatbot framework with custom training pipelines and multi-model support.",
-    techStack: ["Python", "FastAPI", "OpenAI", "Redis"],
-    objective: "Democratize AI chatbot deployment for small businesses.",
-    github: "https://github.com", demo: "https://example.com",
-  },
-  {
-    id: 4, name: "PixelForge", emoji: "🎨", mainStack: "TypeScript + WASM",
-    oneLiner: "Browser-based collaborative image editor",
-    description: "Browser-based image editor with layer support and collaborative editing.",
-    techStack: ["TypeScript", "Canvas API", "WebRTC", "Rust/WASM"],
-    objective: "Create a free, performant alternative to desktop image editors.",
-    github: "https://github.com", demo: "https://example.com",
-  },
-  {
-    id: 5, name: "TaskPilot", emoji: "✈️", mainStack: "React Native + AI",
-    oneLiner: "Smart task manager with AI prioritization",
-    description: "Smart task manager with AI prioritization and calendar integration.",
-    techStack: ["React Native", "Firebase", "GPT-4", "GraphQL"],
-    objective: "Help individuals manage time and focus on what matters.",
-    github: "https://github.com", demo: "https://example.com",
-  },
-];
+const resolveProjectAsset = (assetPath?: string) => {
+  if (!assetPath) return null;
+  if (assetPath.startsWith("http://") || assetPath.startsWith("https://") || assetPath.startsWith("data:") || assetPath.startsWith("/")) {
+    return assetPath;
+  }
+  const normalizedPath = assetPath.startsWith("/") ? assetPath : `/${assetPath}`;
+  return projectAssetImages[normalizedPath] ?? null;
+};
+
+const DeviceFrame = ({
+  src,
+  alt,
+  device,
+  onError,
+}: {
+  src: string;
+  alt: string;
+  device: "pc" | "mobile";
+  onError: () => void;
+}) => {
+  if (device === "mobile") {
+    return (
+      <div className="mx-auto w-[250px] h-[460px] rounded-[2.2rem] p-3 bg-zinc-800 border border-zinc-500/40 shadow-[0_20px_40px_rgba(0,0,0,0.55)] relative">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 rounded-b-xl bg-zinc-900" />
+        <div className="w-full h-full rounded-[1.6rem] overflow-hidden bg-black">
+          <img src={src} alt={alt} className="w-full h-full object-cover" onError={onError} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full rounded-2xl p-3 bg-zinc-800 border border-zinc-500/40 shadow-[0_20px_40px_rgba(0,0,0,0.55)]">
+      <div className="h-4 flex items-center gap-1.5 px-2">
+        <span className="w-2 h-2 rounded-full bg-zinc-500" />
+        <span className="w-2 h-2 rounded-full bg-zinc-500" />
+        <span className="w-2 h-2 rounded-full bg-zinc-500" />
+      </div>
+      <div className="w-full h-[300px] rounded-xl overflow-hidden bg-black">
+        <img src={src} alt={alt} className="w-full h-full object-cover" onError={onError} />
+      </div>
+    </div>
+  );
+};
 
 const Podium = ({
   project,
@@ -76,6 +72,12 @@ const Podium = ({
 }) => {
   const isCenter = position === "center";
   const isLit = isCenter && hovering;
+  const [logoHasError, setLogoHasError] = useState(false);
+  const logoSrc = resolveProjectAsset(project.logo ?? project.image);
+
+  useEffect(() => {
+    setLogoHasError(false);
+  }, [project.id]);
 
   return (
     <motion.div
@@ -130,14 +132,23 @@ const Podium = ({
           isLit
             ? { y: -6, filter: "brightness(1.1) drop-shadow(0 0 10px hsl(var(--foreground) / 0.2))" }
             : isCenter
-            ? { y: 0, filter: "brightness(0.6)" }
-            : { y: 0, filter: "brightness(0.3)" }
+              ? { y: 0, filter: "brightness(0.6)" }
+              : { y: 0, filter: "brightness(0.3)" }
         }
         transition={{ duration: 0.4, type: "spring", stiffness: 200 }}
       >
-        <span className={`${isCenter ? "text-6xl sm:text-7xl" : "text-4xl sm:text-5xl"} select-none block`}>
-          {project.emoji}
-        </span>
+        {logoSrc && !logoHasError ? (
+          <img
+            src={logoSrc}
+            alt={project.name}
+            className={`${isCenter ? "w-20 h-20 sm:w-24 sm:h-24" : "w-14 h-14 sm:w-16 sm:h-16"} object-contain`}
+            onError={() => setLogoHasError(true)}
+          />
+        ) : (
+          <span className={`${isCenter ? "text-6xl sm:text-7xl" : "text-4xl sm:text-5xl"} select-none block`}>
+            {DEFAULT_PROJECT_ICON}
+          </span>
+        )}
       </motion.div>
 
       {/* 3D Podium */}
@@ -251,15 +262,34 @@ const TrophyRoom = () => {
   const [centerIndex, setCenterIndex] = useState(0);
   const [selected, setSelected] = useState<Project | null>(null);
   const [hovering, setHovering] = useState(false);
+  const [selectedImageHasError, setSelectedImageHasError] = useState(false);
+  const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
+
+  const selectedMedia = selected
+    ? (selected.media && selected.media.length > 0
+      ? selected.media
+      : [{ src: selected.image, device: "pc" as const, alt: selected.name }])
+    : [];
+
+  const currentMedia = selectedMedia[selectedMediaIndex] ?? null;
+  const currentMediaSrc = currentMedia ? resolveProjectAsset(currentMedia.src) : null;
+  const hasGallery = selectedMedia.length > 0;
+
+  useEffect(() => {
+    setSelectedImageHasError(false);
+    setSelectedMediaIndex(0);
+  }, [selected?.id]);
 
   const getIndex = (offset: number) =>
     ((centerIndex + offset) % projects.length + projects.length) % projects.length;
 
   const goLeft = useCallback(() => {
+    playSound("clickSwitch", { volume: 0.28, debounceMs: 70 });
     setCenterIndex((prev) => ((prev - 1) + projects.length) % projects.length);
   }, []);
 
   const goRight = useCallback(() => {
+    playSound("clickSwitch", { volume: 0.28, debounceMs: 70 });
     setCenterIndex((prev) => (prev + 1) % projects.length);
   }, []);
 
@@ -273,10 +303,10 @@ const TrophyRoom = () => {
           className="text-center mb-16"
         >
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-            <span className="text-muted-foreground font-mono text-lg block mb-2">{'// projects'}</span>
-            Trophy Room
+            <span className="text-muted-foreground font-mono text-lg block mb-2">{'// projetos'}</span>
+            Tour pelos Projetos
           </h2>
-          <p className="text-muted-foreground">Hover to illuminate. Click to explore.</p>
+          <p className="text-muted-foreground">Explore projetos selecionados com descrições e imagens.</p>
         </motion.div>
 
         {/* Carousel */}
@@ -310,9 +340,19 @@ const TrophyRoom = () => {
               project={project}
               position={position}
               hovering={position === "center" ? hovering : false}
-              onHoverStart={() => position === "center" && setHovering(true)}
+              onHoverStart={() => {
+                if (position === "center") {
+                  playSound("lightSwitch", { volume: 0.22, debounceMs: 220 });
+                  setHovering(true);
+                }
+              }}
               onHoverEnd={() => position === "center" && setHovering(false)}
-              onClick={() => position === "center" && setSelected(project)}
+              onClick={() => {
+                if (position === "center") {
+                  playSound("openModal", { volume: 0.34, debounceMs: 120 });
+                  setSelected(project);
+                }
+              }}
             />
           ))}
         </div>
@@ -325,10 +365,12 @@ const TrophyRoom = () => {
           {projects.map((_, i) => (
             <button
               key={i}
-              onClick={() => setCenterIndex(i)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                i === centerIndex ? "bg-foreground/80 w-6" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-              }`}
+              onClick={() => {
+                playSound("clickSwitch", { volume: 0.28, debounceMs: 70 });
+                setCenterIndex(i);
+              }}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${i === centerIndex ? "bg-foreground/80 w-6" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                }`}
             />
           ))}
         </div>
@@ -350,23 +392,65 @@ const TrophyRoom = () => {
               exit={{ scale: 0.85, opacity: 0, y: 40 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass rounded-2xl max-w-lg w-full p-8 relative"
+              className={`glass rounded-2xl w-full p-8 relative ${hasGallery ? "max-w-6xl" : "max-w-lg"}`}
             >
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setSelected(null)}
+                onMouseEnter={() => playSound("buttonHover", { volume: 0.2, debounceMs: 90 })}
                 className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-5 w-5" />
               </Button>
 
-              <div className="text-center mb-6">
-                <span className="text-5xl">{selected.emoji}</span>
-                <h3 className="text-2xl font-bold mt-3">{selected.name}</h3>
-              </div>
+              <div className={`${hasGallery ? "md:grid md:grid-cols-[1.3fr_1fr] md:gap-8" : ""}`}>
+                <div className="text-center mb-6 md:mb-0">
+                  {currentMediaSrc && !selectedImageHasError ? (
+                    <div className="relative">
+                      <DeviceFrame
+                        src={currentMediaSrc}
+                        alt={currentMedia?.alt ?? selected.name}
+                        device={currentMedia?.device ?? "pc"}
+                        onError={() => setSelectedImageHasError(true)}
+                      />
 
-              <div className="space-y-4">
+                      {selectedMedia.length > 1 && (
+                        <>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/70 border border-border/60"
+                            onClick={() => {
+                              playSound("clickSwitch", { volume: 0.28, debounceMs: 70 });
+                              setSelectedMediaIndex((prev) => (prev - 1 + selectedMedia.length) % selectedMedia.length);
+                            }}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/70 border border-border/60"
+                            onClick={() => {
+                              playSound("clickSwitch", { volume: 0.28, debounceMs: 70 });
+                              setSelectedMediaIndex((prev) => (prev + 1) % selectedMedia.length);
+                            }}
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-5xl">{DEFAULT_PROJECT_ICON}</span>
+                  )}
+                  <h3 className="text-2xl font-bold mt-3">{selected.name}</h3>
+                </div>
+
+                <div className="space-y-4">
                 <div>
                   <h4 className="text-foreground/85 font-mono text-sm mb-1">Objective</h4>
                   <p className="text-muted-foreground text-sm">{selected.objective}</p>
@@ -387,15 +471,26 @@ const TrophyRoom = () => {
                 </div>
                 <div className="flex gap-3 pt-2">
                   <Button variant="hero" size="sm" asChild>
-                    <a href={selected.github} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={selected.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onMouseEnter={() => playSound("buttonHover", { volume: 0.2, debounceMs: 90 })}
+                    >
                       <Github className="mr-2 h-4 w-4" /> GitHub
                     </a>
                   </Button>
                   <Button variant="heroOutline" size="sm" asChild>
-                    <a href={selected.demo} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={selected.demo}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onMouseEnter={() => playSound("buttonHover", { volume: 0.2, debounceMs: 90 })}
+                    >
                       <ExternalLink className="mr-2 h-4 w-4" /> Live Demo
                     </a>
                   </Button>
+                </div>
                 </div>
               </div>
             </motion.div>
